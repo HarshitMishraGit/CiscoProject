@@ -16,7 +16,7 @@ for packet in cap:
     #     # Add more fields as per your requirements
     # }
     # packets.append(packet_info)
-    print(packet.frame_info.)
+    print(packet.frame_info)
     # print(packet.eth.dst)
     # print(packet.eth.src)
     # print(packet.eth._all_fields)
