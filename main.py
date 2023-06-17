@@ -18,6 +18,7 @@ for packet in cap:
     # packets.append(packet_info)
     print(packet.frame_info)
     # print(packet.eth.dst)
+
     # print(packet.eth.src)
     # print(packet.eth._all_fields)
     # print(packet.eth.type)
