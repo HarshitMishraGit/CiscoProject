@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <title>Packet Analysis Results</title>
+</head>
+<body>
+    <h1>Packet Analysis Results</h1>
+    <table>
+        <tr>
+            <th>Time</th>
+            <th>Source</th>
+            <th>Destination</th>
+            <th>Protocol</th>
+            <!-- Add more headers for additional fields -->
+        </tr>
+        {% for packet in packets %}
+        <tr>
+            <td>{{ packet['time'] }}</td>
+            <td>{{ packet['source'] }}</td>
+            <td>{{ packet['destination'] }}</td>
+            <td>{{ packet['protocol'] }}</td>
+            <!-- Add more columns for additional fields -->
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

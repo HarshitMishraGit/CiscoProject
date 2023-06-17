@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <title>Capture File Analyzer</title>
+</head>
+<body>
+    <h1>Capture File Analyzer</h1>
+    <form method="POST" action="/" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".pcap">
+        <input type="submit" value="Analyze">
+    </form>
+</body>
+</html>
