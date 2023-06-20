@@ -1,5 +1,7 @@
 import pyshark as ps
 import pandas as pd
+import xmltodict
+import datetime
 import json
 # from flask import Flask, render_template, request
 # app = Flask(__name__)
@@ -16,12 +18,46 @@ for packet in cap:
     #     # Add more fields as per your requirements
     # }
     # packets.append(packet_info)
-    print(packet.frame_info)
+    # print(packet.frame_info)
+    # print(packet.get_multiple_layers)
+    # print(packet.get_raw_packet)
+    # print(type(packet.ipv6))
+    # print(packet.layers)
+    # my_dict = xmltodict.parse(packet.ipv6)
+    # print(my_dict)
     # print(packet.eth.dst)
-
     # print(packet.eth.src)
     # print(packet.eth._all_fields)
     # print(packet.eth.type)
+    print(dir(packet))
+    # print(packet.length)
+    # print(dir(packet.tcp))
+    # print(dir(packet.eth.src_ig))
+    # print(packet.eth.src)
+    # print(packet.eth.dst)
+    # print(packet.eth.type)
+    # print(packet.eth.src_resolved)
+    # print(packet.eth.dst_oui_resolved)
+    # print(packet.frame_info)
+    # print(packet.frame_info.protocols.split(':'))
+    # print(packet.frame_info.cap_len)
+    # print(packet.frame_info.time_epoch)
+    # time_string = datetime.datetime.fromtimestamp(float(packet.frame_info.time_epoch)).strftime('%Y-%m-%d %H:%M:%S')
+    # print(time_string)
+    # print(packet.frame_info.cap_len)
+    # print(dir(packet.ipv6))
+    # print(packet.ipv6.field_names)
+    # print(packet.ipv6.version)
+    # print(packet.ipv6.ip_version)
+    # print(packet.ipv6.tclass)
+    # print(packet.ipv6.tclass_dscp)
+    # print(packet.ipv6.src_host)
+    # print(packet.ipv6.dst_host)
+    # print(packet.ipv6.hlim)
+    # print(dir(packet.layers))
+    # print(packet.layers)
+    print(packet.tcp.field_names)
+
     break
     # fp=open("properties.txt","w")
     # pacProp=dir(packet)
@@ -36,6 +72,12 @@ for packet in cap:
     #     fp.write("==========================================================================================\n\n")
     # fp.close()
     # break
+
+
+
+
+
+
 # create a dataframe
 # df = pd.DataFrame(packets)
 # df.to_excel('packet_info.xlsx', index=False)
