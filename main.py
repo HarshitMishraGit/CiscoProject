@@ -66,42 +66,48 @@ packets = []
 error_packets = []
 total_length_analyzed = 0
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    global cap, packets, error_packets, total_length_analyzed
-
-    if request.method == 'POST':
-        file = request.files['file']
-        file.save('upload/http_tcp_80_traffic.pcap')
-        cap = ps.FileCapture('upload/http_tcp_80_traffic.pcap')
-        for packet in cap:
-            try:
-                packet_info = {
-                    'time': packet.sniff_time,
-                    'source': packet.ip.src_host,
-                    'destination': packet.ip.dst_host,
-                    'protocol': packet.highest_layer,
-                    'length': int(packet.length),
-                }
-                total_length_analyzed += int(packet.length)
-                packets.append(packet_info)
-            except Exception as e:
-                error_packets.append(packet)
-                print(f"Error analyzing packet: {e}")
-        return render_template('result.html', packets=[], error_packets=[], total_length=10)
-
-    return render_template('index.html')
+# @app.route('/', methods=['GET', 'POST'])
+# def index():
+#     global cap, packets, error_packets, total_length_analyzed
+#
+#     if request.method == 'POST':
+#         file = request.files['file']
+#         file.save('upload/http_tcp_80_traffic.pcap')
+#         cap = ps.FileCapture('upload/http_tcp_80_traffic.pcap')
+#         for packet in cap:
+#             try:
+#                 packet_info = {
+#                     'time': packet.sniff_time,
+#                     'source': packet.ip.src_host,
+#                     'destination': packet.ip.dst_host,
+#                     'protocol': packet.highest_layer,
+#                     'length': int(packet.length),
+#                 }
+#                 total_length_analyzed += int(packet.length)
+#                 packets.append(packet_info)
+#             except Exception as e:
+#                 error_packets.append(packet)
+#                 print(f"Error analyzing packet: {e}")
+#         return render_template('result.html', packets=[], error_packets=[], total_length=10)
+#
+#     return render_template('index.html')
 
 # timer =0
-@app.route('/timer')
-def timer():
-    # global timer
-    timer = 0
-    while timer < 10:
-        time.sleep(1)  # Wait for 1 second
-        timer += 1
-        # You can also perform other operations or calculations here if needed
-        yield jsonify(timer=timer)  # Yield the updated timer as JSON
+
+@app.route('/')
+def index():
+    return render_template('test.html')
+@socketio.on('connect')
+def handle_connect():
+    @socketio.on('get_timer')
+    def get_timer():
+        timer = 1
+        while True:
+            socketio.emit('timer_update', timer)
+            socketio.sleep(1)  # Wait for 1 second
+            timer += 1
+# todo: do this
 if __name__ == '__main__':
     app.run(debug=True)
+    socketio.run(app,allow_unsafe_werkzeug=True)
 
