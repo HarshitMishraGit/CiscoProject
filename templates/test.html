@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Timer Example</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Timer: <span id="timer">0</span></h1>
+
+    <script>
+        // Function to update the timer on the page
+        function updateTimer(timer) {
+            $('#timer').text(timer);
+        }
+
+        // Function to make the AJAX request and update the timer
+        function refreshTimer() {
+            $.ajax({
+                url: '/timer',
+                dataType: 'json',
+                success: function(response) {
+                    updateTimer(response.timer);  // Update the timer on the page
+                    setTimeout(refreshTimer, 1000);  // Schedule the next AJAX request after 1 second
+                }
+            });
+        }
+
+        // Start the timer update
+        refreshTimer();
+    </script>
+</body>
+</html>

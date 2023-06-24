@@ -1,26 +1,51 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
-    <title>Packet Analysis Results</title>
+    <title>Packet Info</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
-    <h1>Packet Analysis Results</h1>
+    <h1>Packet Info</h1>
+    <h2>Total Length Analyzed: {{ total_length }} bytes</h2>
     <table>
         <tr>
             <th>Time</th>
             <th>Source</th>
             <th>Destination</th>
             <th>Protocol</th>
-            <!-- Add more headers for additional fields -->
+            <th>Length (bytes)</th>
         </tr>
         {% for packet in packets %}
         <tr>
-            <td>{{ packet['time'] }}</td>
-            <td>{{ packet['source'] }}</td>
-            <td>{{ packet['destination'] }}</td>
-            <td>{{ packet['protocol'] }}</td>
-            <!-- Add more columns for additional fields -->
+            <td>{{ packet.time }}</td>
+            <td>{{ packet.source }}</td>
+            <td>{{ packet.destination }}</td>
+            <td>{{ packet.protocol }}</td>
+            <td>{{ packet.length }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <h2>Error Packets</h2>
+    <table>
+        <tr>
+            <th>Packet</th>
+        </tr>
+        {% for error_packet in error_packets %}
+        <tr>
+            <td>{{ error_packet }}</td>
         </tr>
         {% endfor %}
     </table>
