@@ -1,53 +1,99 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Packet Info</title>
+    <title>Packets Information</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.3/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css">
     <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
+        .pagination {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
         }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
+        .pagination button {
+            margin: 0 5px;
         }
     </style>
 </head>
 <body>
-    <h1>Packet Info</h1>
-    <h2>Total Length Analyzed: {{ total_length }} bytes</h2>
-    <table>
-        <tr>
-            <th>Time</th>
-            <th>Source</th>
-            <th>Destination</th>
-            <th>Protocol</th>
-            <th>Length (bytes)</th>
-        </tr>
-        {% for packet in packets %}
-        <tr>
-            <td>{{ packet.time }}</td>
-            <td>{{ packet.source }}</td>
-            <td>{{ packet.destination }}</td>
-            <td>{{ packet.protocol }}</td>
-            <td>{{ packet.length }}</td>
-        </tr>
-        {% endfor %}
+ <h1>Timer: <span id="timer">0</span></h1>
+
+    <table id="packets-table">
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Source</th>
+                <th>Destination</th>
+                <th>Protocol</th>
+                <th>Length</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
     </table>
-    <h2>Error Packets</h2>
-    <table>
-        <tr>
-            <th>Packet</th>
-        </tr>
-        {% for error_packet in error_packets %}
-        <tr>
-            <td>{{ error_packet }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+
+<!--    <div class="pagination">-->
+<!--        <button id="prev-page-btn" disabled>Prev</button>-->
+<!--        <button id="next-page-btn" disabled>Next</button>-->
+<!--    </div>-->
+
+    <script>
+        var socket = io();
+        var datapackets=[];
+      $(document).ready(function() {
+        // Function to update the timer on the page
+        function updateTimer(timer) {
+            $('#timer').text(timer);
+        }
+
+      // Event listener to start receiving timer updates from the server
+        socket.on('connect', function() {
+            socket.emit('get_packets');
+        });
+
+        // Event listener for receiving timer updates from the server
+        socket.on('packets_info', function(packet) {
+            timer=packet.timer
+            updateTimer(timer);
+            //console.log(obj)
+
+        });
+
+        // Initialize the DataTable
+        var table = $('#packets-table').DataTable();
+         // Variables for paging
+            var currentPage = 0;
+            var rowsPerPage = 10;
+            var totalRows = table.data().length;
+            var totalPages = Math.ceil(totalRows / rowsPerPage);
+
+          var packets = [
+                        'time',
+                        ' packet.source',
+                        'packet.destination',
+                        'packet.protocol',
+                        'packet.length'
+                    ];
+         table.row.add(packets).draw(false);
+       // totalRows +=1;
+        console.log(table)
+         socket.on('Completed', function(data) {
+            alert('Completed Successfully')
+            datapackets=data.packets;
+            console.log('Packets reached =>',data)
+            updateTableFromData(data);
+
+        });
+        function updateTableFromData(data){
+        data.packets.map((packet)=>{
+               table.row.add([packet.time,packet.source,packet.destination,packet.protocol,packet.length]).draw(false)
+            })
+        }
+      })
+    </script>
 </body>
 </html>

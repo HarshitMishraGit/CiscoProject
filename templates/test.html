@@ -11,7 +11,7 @@
 
     <script>
         var socket = io();
-    console.log("Hello this has started", socket)
+        console.log("Hello this has started", socket)
 
         // Function to update the timer on the page
         function updateTimer(timer) {
@@ -20,12 +20,14 @@
 
       // Event listener to start receiving timer updates from the server
         socket.on('connect', function() {
-            socket.emit('get_timer');
+            socket.emit('get_packets');
         });
 
         // Event listener for receiving timer updates from the server
-        socket.on('timer_update', function(timer) {
+        socket.on('packets_info', function(obj) {
+            timer=obj.timer
             updateTimer(timer);
+            console.log(obj)
         });
     </script>
 </body>
