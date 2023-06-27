@@ -29,6 +29,11 @@
             updateTimer(timer);
             console.log(obj)
         });
+        socket.on('Completed', function(data) {
+            alert('Completed Successfully')
+            console.log('Packets reached =>',data)
+            socket.emit('close');
+        });
     </script>
 </body>
 </html>

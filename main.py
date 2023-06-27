@@ -1,6 +1,7 @@
 import pyshark as ps
 from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO
+import asyncio
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'HarshitMishra123'  # Replace with your own secret key
@@ -24,19 +25,20 @@ def index():
     return render_template('result.html')
 
 
+async def get_length():
+    global cap
+    await cap.load_packets()
+    return len(cap)
+
+
 @socketio.on('connect')
 def handle_connect():
+    # total_length_packet=get_length()
     @socketio.on('get_packets')
     def get_packets():
         global cap, packets, error_packets, total_length_analyzed
-        # Emit the initial data to the client
-        # socketio.emit('packets_info', {
-        #     'packets': packets,
-        #     'error_packets': error_packets,
-        #     'total_length': total_length_analyzed
-        # })
         timer = 1
-        for packet in cap:
+        for i, packet in enumerate(cap):
             try:
                 packet_info = {
                     'time': packet.sniff_time.strftime('%d %b %Y %I:%M:%S %p'),
@@ -57,18 +59,28 @@ def handle_connect():
                 # socketio.sleep(10)
                 # print(packet_info)
                 socketio.emit('packets_info', {
-                    'timer': timer
+                    'timer': i + 1,
+
                 })
                 # socketio.sleep(1)  # Wait for 1 second
-                timer += 1
             except Exception as e:
                 error_packets.append(packet)
+                socketio.emit('packets_info', {
+                    'timer': i + 1,
+                })
                 # print(f"Error analyzing packet: {e}")
         socketio.emit('Completed', {
             'packets': packets,
             'total_length': total_length_analyzed,
             'unique_ip': list(unique_ip)
         })
+
+    @socketio.on('close')
+    def handle_close():
+        socketio.emit('closed', {
+            'message': "connection is closed ."
+        })
+        socketio.stop()
 
 
 if __name__ == '__main__':
