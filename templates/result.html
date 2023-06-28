@@ -6,111 +6,309 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.3/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css">
+    <link
+            href="https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.css"
+            rel="stylesheet"
+    />
+    <link
+            rel="stylesheet"
+            href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .pagination {
-            margin-top: 10px;
-            display: flex;
-            justify-content: center;
-        }
-        .pagination button {
-            margin: 0 5px;
-        }
+      .pagination {
+        margin-top: 10px;
+        display: flex;
+        justify-content: center;
+      }
+      .pagination button {
+        margin: 0 5px;
+      }
+      body {
+        /* background-color: #adadad; */
+        /* background-image: url("../static/Images/bg.png");
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-size: cover; */
+      }
+      h1 {
+        font-weight: lighter;
+      }
+      p {
+        font-style: italic;
+      }
+      .loader {
+        text-align: center;
+      }
+      #protocolChart {
+        display: block;
+        box-sizing: border-box;
+        height: 488.8px;
+        width: 489.6px;
+        border-radius: 5px;
+        border: 2px solid red;
+        background-color: rgba(255, 192, 203, 0.39);
+        padding: 1rem;
+      }
+      #packetChart {
+        display: block;
+        box-sizing: border-box;
+        height: 488.8px;
+        width: 489.6px;
+        border-radius: 5px;
+        border: 2px solid red;
+        background-color: rgba(255, 192, 203, 0.39);
+        padding: 1rem;
+      }
+      #map{
+        width: 40vw;
+      }
+      /*
+  Set the color of the icon
+*/
+      svg path,
+      svg rect {
+        fill: #ff6700;
+      }
+
 
 
     </style>
 </head>
 <body>
-<h1>Timer: <span id="timer">0</span></h1>
-
-<canvas id="protocolChart" style="width:200px;height:300px;"></canvas>
-<!--    <table id="packets-table">-->
-<!--        <thead>-->
-<!--            <tr>-->
-<!--                <th>Time</th>-->
-<!--                <th>Source</th>-->
-<!--                <th>Destination</th>-->
-<!--                <th>Protocol</th>-->
-<!--                <th>Length</th>-->
-<!--            </tr>-->
-<!--        </thead>-->
-<!--        <tbody>-->
-
-<!--        </tbody>-->
-<!--    </table>-->
+<div
+        class="flex flex-row space-x-2 justify-center text-xl border-b-2 border-black border-dotted py-2"
+>
+    <div>
+        <h1>
+            <span id="state"> Analyzing :</span>
+            <span id="timer" class="font-bold text-orange-500">0</span> Packets
+        </h1>
+    </div>
+    <div class="loader loader--style5" title="4">
+        <svg
+                version="1.1"
+                id="Layer_1"
+                xmlns="http://www.w3.org/2000/svg"
+                xmlns:xlink="http://www.w3.org/1999/xlink"
+                x="0px"
+                y="0px"
+                width="24px"
+                height="30px"
+                viewBox="0 0 24 30"
+                style="enable-background: new 0 0 50 50"
+                xml:space="preserve"
+        >
+          <rect x="0" y="0" width="4" height="10" fill="#333">
+            <animateTransform
+                    attributeType="xml"
+                    attributeName="transform"
+                    type="translate"
+                    values="0 0; 0 20; 0 0"
+                    begin="0"
+                    dur="0.6s"
+                    repeatCount="indefinite"
+            />
+          </rect>
+            <rect x="10" y="0" width="4" height="10" fill="#333">
+            <animateTransform
+                    attributeType="xml"
+                    attributeName="transform"
+                    type="translate"
+                    values="0 0; 0 20; 0 0"
+                    begin="0.2s"
+                    dur="0.6s"
+                    repeatCount="indefinite"
+            />
+          </rect>
+            <rect x="20" y="0" width="4" height="10" fill="#333">
+            <animateTransform
+                    attributeType="xml"
+                    attributeName="transform"
+                    type="translate"
+                    values="0 0; 0 20; 0 0"
+                    begin="0.4s"
+                    dur="0.6s"
+                    repeatCount="indefinite"
+            />
+          </rect>
+        </svg>
+    </div>
+</div>
+<div class="flex flex-row-reverse justify-between align-center m-10">
+    <div>
+        <canvas id="protocolChart"></canvas>
+        <!-- <canvas id="packetChart"></canvas> -->
+    </div>
+    <div id="map"></div>
+</div>
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.js"></script>
 <script>
-        var socket = io();
-      $(document).ready(function() {
+      // Map
+      mapboxgl.accessToken =
+        "pk.eyJ1IjoiaGFyc2hpdG1pc2hyYSIsImEiOiJja3dia211b3MwMTd5Mm5xdm1yd2o1dmlxIn0.QQokhJ0cV4yV5EVchp1ymg";
+      var map = new mapboxgl.Map({
+        container: "map",
+        style: "mapbox://styles/mapbox/streets-v11",
+        center: [79, 21], // setting centre to india
+        zoom: 3, // zoomed the maped 3x
+      });
+
+      const fetchLocation = async (ip) => {
+          try {
+              const response = await fetch(`http://ip-api.com/json/${ip}`);
+              const data = await response.json();
+              if (data.status === 'success') {
+                  const { lat, lon } = data;
+                  new mapboxgl.Marker()
+                    .setLngLat([lon, lat])
+                    .addTo(map);
+              }
+          } catch (error) {
+              // console.error(`Error fetching location for IP ${ip}:`, error);
+          }
+      };
+
+      const fetchAllLocations = async (ipArray) => {
+          for (const ip of ipArray) {
+              await fetchLocation(ip);
+          }
+          console.log('Results:', results);
+          return results;
+      };
+
+      // Map
+      var socket = io();
+      // Function to stop the packet analysis
+      function stopAnalysis() {
+        socket.emit("close");
+      }
+
+      // Function to reconnect to the server
+      function reconnect() {
+        console.log("start clicked");
+        socket.connect();
+        // Event listener to start receiving timer updates from the server
+      }
+      $(document).ready(function () {
         // Function to update the timer on the page
         function updateTimer(timer) {
-            $('#timer').text(timer);
+          $("#timer").text(timer);
         }
-
-      // Event listener to start receiving timer updates from the server
-        socket.on('connect', function() {
-            socket.emit('get_packets');
+        socket.on("connect", function () {
+          socket.emit("get_packets");
         });
 
         // Event listener for receiving timer updates from the server
-        socket.on('packets_info', function(packet) {
-            timer=packet.timer
-            updateTimer(timer);
-            //console.log(obj)
-
+        socket.on("packets_info", function (packet) {
+          timer = packet.timer;
+          updateTimer(timer);
+          //console.log(obj)
         });
 
         // Initialize the DataTable
-       // var table = $('#packets-table').DataTable();
+        // var table = $('#packets-table').DataTable();
 
-         socket.on('Completed', function(data) {
-            alert('Completed Successfully')
-             localStorage.setItem('data',JSON.stringify(data) )
-            console.log('Packets reached =>',data)
-            socket.emit('close');
-           plotData();
-        });
-        socket.on('closed',(data)=>{
-        alert("message from server ->",data.message);
-        })
-
-        const plotData=()=>{
-                // Extract the protocols from the packets
-        let datapackets=JSON.parse(localStorage.getItem('data'));
-        var protocols = datapackets.packets.map(function(packet) {
-          return packet.protocol;
-        });
-        // Count the occurrences of each protocol
-        var protocolCounts = {};
-        protocols.forEach(function(protocol) {
-          protocolCounts[protocol] = (protocolCounts[protocol] || 0) + 1;
+        socket.on("Completed", function (data) {
+          localStorage.setItem("data", JSON.stringify(data));
+          console.log("Packets reached =>", data);
+          // stopAnalysis();
+          $(".loader").addClass("hidden");
+          $("#state").text("Analyzed :");
+          plotData();
+         fetchAllLocations(data.unique_ip);
+          
         });
 
-                // Generate an array of background colors using a color palette
-        var colorPalette = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF', '#67B8E3', '#8C9EFF', '#FF75A0', '#FFEB3B', '#3F51B5', '#FF5722', '#607D8B', '#E91E63', '#9C27B0', '#2196F3', '#009688', '#FF9800', '#795548'];
-        var backgroundColors = Object.keys(protocolCounts).map(function(protocol, index) {
-          return colorPalette[index % colorPalette.length];
-        });
+        const plotData = () => {
+          // Extract the protocols from the packets
+          let datapackets = JSON.parse(localStorage.getItem("data"));
+          var protocols = datapackets.packets.map(function (packet) {
+            return packet.protocol;
+          });
+          // Count the occurrences of each protocol
+          var protocolCounts = {};
+          protocols.forEach(function (protocol) {
+            protocolCounts[protocol] = (protocolCounts[protocol] || 0) + 1;
+          });
 
-                // Prepare the data for the pie chart
-        var chartData = {
-          labels: Object.keys(protocolCounts),
-          datasets: [{
-            data: Object.values(protocolCounts),
-            backgroundColor: backgroundColors
-          }]
+          // Generate an array of background colors using a color palette
+          var colorPalette = [
+            "#FF6384",
+            "#36A2EB",
+            "#FFCE56",
+            "#4BC0C0",
+            "#9966FF",
+            "#FF9F40",
+            "#C9CBCF",
+            "#67B8E3",
+            "#8C9EFF",
+            "#FF75A0",
+            "#FFEB3B",
+            "#3F51B5",
+            "#FF5722",
+            "#607D8B",
+            "#E91E63",
+            "#9C27B0",
+            "#2196F3",
+            "#009688",
+            "#FF9800",
+            "#795548",
+          ];
+          var backgroundColors = Object.keys(protocolCounts).map(function (
+            protocol,
+            index
+          ) {
+            return colorPalette[index % colorPalette.length];
+          });
+
+          // Prepare the data for the pie chart
+          var chartData = {
+            labels: Object.keys(protocolCounts),
+            datasets: [
+              {
+                data: Object.values(protocolCounts),
+                backgroundColor: backgroundColors,
+              },
+            ],
+          };
+          // Create the pie chart
+          var ctx = document.getElementById("protocolChart").getContext("2d");
+          new Chart(ctx, {
+            type: "pie",
+            data: chartData,
+            options: {
+              // Customize the chart options
+              tooltips: {
+                callbacks: {
+                  label: function (context) {
+                    // // Retrieve the index of the hovered segment
+                    // const index = context.dataIndex;
+                    // // Retrieve the label of the hovered segment
+                    // const label = context.chart.data.labels[index];
+                    // // Log the label name in the console
+                    let label = context.dataset.label || "";
+                    console.log(label);
+                    // Return an empty string to prevent displaying the tooltip
+                    return "";
+                  },
+                },
+              },
+            },
+            onHover: function (event, elements) {
+              if (elements.length) {
+                // Retrieve the index of the hovered segment
+                const index = elements[0].index;
+                // Retrieve the label of the hovered segment
+                const label = chart.data.labels[index];
+                // Log the label name in the console
+                console.log("label => ", label);
+              }
+            },
+          });
         };
-        // Create the pie chart
-        var ctx = document.getElementById('protocolChart').getContext('2d');
-        new Chart(ctx, {
-          type: 'pie',
-          data: chartData,
-          options: {
-            // Customize the chart options if needed
-          }
-        });
+      });
 
-        }
-      })
 
 
 </script>

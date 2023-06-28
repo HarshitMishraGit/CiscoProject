@@ -1,22 +1,27 @@
 import pyshark as ps
 import time
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 start = time.time()
 cap = ps.FileCapture('upload/http_tcp_80_traffic.pcap', use_ek=True)
 # total_packets = len([packet for packet in cap])
 packets = []
 i = 1
-
+print("MAPBOX API", os.getenv("MAPBOX_API"))
+exit()
 # print(len([packet for packet in cap]))
 cap.load_packets()
-packet_amount = len(cap)
-print(packet_amount)
-exit()
+# packet_amount = len(cap)
+# print(packet_amount)
+# exit()
 
 for i, packet in enumerate(cap):
     # print(dir(packet))
-    print(packet)
-    break
+    if 'ip' in packet:
+        print("Source => ", packet.ip.src_host)
+        print("Destinatio =>", packet.ip.dst_host)
     # packets.append(packet)
     # Calculate progress percentage
     # progress = int((i + 1) / total_packets * 100)
@@ -41,6 +46,4 @@ for i, packet in enumerate(cap):
     #     continue
 
 end = time.time()
-print(end - start)
-print(f'================ Total Length expected => {total_packets}')
-print(f'================= Actual Length => {len(packets)}')
+print("Time in Analyzation => ", end - start)
