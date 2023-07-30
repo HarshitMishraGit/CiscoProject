@@ -10,6 +10,8 @@ packets = []
 error_packets = []
 total_length_analyzed = 0
 unique_ip = set()
+total_seq_number = set()
+retransmitted_seq_number = []
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -53,6 +55,12 @@ def handle_connect():
                     'timer': i + 1,
 
                 })
+                # add the seqnumbers to set
+                if 'tcp' in packet:
+                    if packet.tcp.seq in total_seq_number:
+                        retransmitted_seq_number.append(packet.tcp.seq)
+                    else:
+                        total_seq_number.add(packet.tcp.seq)
                 # socketio.sleep(1)  # Wait for 1 second
             except Exception as e:
                 error_packets.append(packet)
@@ -63,7 +71,8 @@ def handle_connect():
         socketio.emit('Completed', {
             'packets': packets,
             'total_length': total_length_analyzed,
-            'unique_ip': list(unique_ip)
+            'unique_ip': list(unique_ip),
+            'retransmitted tcp packets': len(retransmitted_seq_number)
         })
 
     @socketio.on('close')
